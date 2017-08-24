@@ -37,6 +37,8 @@ def guess_binary():
     algorithm doesn't need to try numbers that are greater than guess.
 
     你可以直接运行 guess_binary 看效果。这是每次去掉50%错误选择的方法，我基本解出来了，但正确答案的47行 upper = guess -1 和 49行的 + 1 我不太能理解。我的答案没有加减一的确有些数字会出错。
+
+    Aug 24 update, 我觉得我好像明白了，guess -1 / +1 是排除掉已经错误的 guess。之前在考虑是不是和 // 的 floor 除法有关，看来没那么复杂。
     """
     prompt_for_number(LOWER, UPPER)
     num_guesses = 1
