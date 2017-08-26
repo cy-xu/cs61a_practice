@@ -1,7 +1,10 @@
 """CS 61A Presents The Game of Hog."""
 
+# 题目地址 https://inst.eecs.berkeley.edu/~cs61a/fa16/proj/hog/
+
 from dice import four_sided, six_sided, make_test_dice
 from ucb import main, trace, log_current_line, interact
+from random import randint, randrange
 
 GOAL_SCORE = 100  # The goal of Hog is to score 100 points.
 
@@ -17,21 +20,58 @@ def roll_dice(num_rolls, dice=six_sided):
     """
     # These assert statements ensure that num_rolls is a positive integer.
     assert type(num_rolls) == int, 'num_rolls must be an integer.'
-    assert num_rolls > 0, 'Must roll at least once.'
+    assert num_rolls >= 0, 'Must roll at least once.'
     # BEGIN PROBLEM 1
-    "*** REPLACE THIS LINE ***"
+    pigout = False
+    ones = 0
+    total = 0
+    while num_rolls > 0:
+        num_rolls -= 1
+        n = dice()
+        if n == 1:
+            pigout = True
+            ones += 1
+        else:
+            total = total + n
+    return (pigout and ones) or total #借鉴他人，利用了 and or 的特性。
     # END PROBLEM 1
-
 
 def free_bacon(opponent_score):
     """Return the points scored from rolling 0 dice (Free Bacon)."""
     # BEGIN PROBLEM 2
-    "*** REPLACE THIS LINE ***"
+    return 1 + max(opponent_score // 10, opponent_score % 10)
     # END PROBLEM 2
 
 
 # Write your prime functions here!
+def is_prime(score):
+    if score <= 1:
+        return False
+    else:
+        for i in range(2,int(score ** 0.5)+1,1):
+            if score % i == 0:
+                return False
+    return True
 
+def next_prime(score):
+    next = score + 1
+    while not is_prime(next):
+        next += 1
+    print('Hogtimus Prime rule got you ' + str(next))
+    return next
+
+#借鉴他人
+def hog_prime(score):
+    if is_prime(score):
+        return next_prime(score)
+    return score
+
+def when_pig_fly(num_rolls, score):
+    if score > 25:
+        score = 25 - num_rolls
+        print('When Pig Fly got you ' + str(score))
+        return score
+    return score
 
 def take_turn(num_rolls, opponent_score, dice=six_sided):
     """Simulate a turn rolling NUM_ROLLS dice, which may be 0 (Free Bacon).
@@ -48,7 +88,17 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert num_rolls <= 10, 'Cannot roll more than 10 dice.'
     assert opponent_score < 100, 'The game should be over.'
     # BEGIN PROBLEM 2
-    "*** REPLACE THIS LINE ***"
+
+    if num_rolls == 0:
+        print ('You chose Free Bacon')
+        return free_bacon(opponent_score)
+    else:
+        n = roll_dice(num_rolls, dice)
+        print('You rolled ' + str(n))
+
+    n = hog_prime(n)
+    n = when_pig_fly(num_rolls,n)
+
     # END PROBLEM 2
 
 
@@ -56,11 +106,13 @@ def reroll(dice):
     """Return dice that return even outcomes and re-roll odd outcomes of DICE."""
     def rerolled():
         # BEGIN PROBLEM 3
-        "*** REPLACE THIS LINE ***"
-        return dice()  # Replace this statement
+        n = dice()
+        if n % 2 != 0: # if not even, reroll
+            n = dice()
+        return n
+        #return dice()  # Replace this statement
         # END PROBLEM 3
     return rerolled
-
 
 def select_dice(score, opponent_score, dice_swapped):
     """Return the dice used for a turn, which may be re-rolled (Hog Wild) and/or
@@ -69,13 +121,41 @@ def select_dice(score, opponent_score, dice_swapped):
     DICE_SWAPPED is True if and only if four-sided dice are being used.
     """
     # BEGIN PROBLEM 4
-    "*** REPLACE THIS LINE ***"
-    dice = six_sided  # Replace this statement
+    #""" 我的旧答案
+    #if opponent_score != 0:
+    #    x = score / opponent_score
+    #    if x == 2 or x == 0.5:
+    #        print('Swine Swap! Scores swapped!')
+    #        score, opponent_score = opponent_score, score
+#
+    #if dice_swapped:
+    #    dice = four-sided
+    #elif not dice_swapped:
+    #    dice = six_sided
+    #if num_rolls == -1:
+    #    print('Pork Chop! Dice swapped!')
+    #    dice_swapped = not dice_swapped
+    #dice = six_sided  # Replace this statement
+
+    if dice_swapped:
+        dice = four-sided
+    else:
+        dice = six_sided
     # END PROBLEM 4
     if (score + opponent_score) % 7 == 0:
+        print('Hog Wild! Reroll dice!')
         dice = reroll(dice)
     return dice
 
+def swine_swap(score, opponent_score):
+    #借鉴他人
+    if score * 2 == opponent_score or opponent_score * 2 == score:
+        score, opponent_score = opponent_score, score
+    return score, opponent_score
+
+#借鉴他人
+def swap_dice(dice_swapped):
+    return not dice_swapped
 
 def other(player):
     """Return the other player, for a player PLAYER numbered 0 or 1.
@@ -86,7 +166,6 @@ def other(player):
     0
     """
     return 1 - player
-
 
 def play(strategy0, strategy1, score0=0, score1=0, goal=GOAL_SCORE):
     """Simulate a game and return the final scores of both players, with
@@ -105,9 +184,28 @@ def play(strategy0, strategy1, score0=0, score1=0, goal=GOAL_SCORE):
     dice_swapped = False  # Whether 4-sided dice have been swapped for 6-sided
     # BEGIN PROBLEM 5
     "*** REPLACE THIS LINE ***"
+    while score0 < goal or score1 < goal:
+        if player == 0:
+            roll = strategy0(score0, score1)
+            if roll == -1:
+                # Pork Chop
+                score0 += 1
+                swap_dice(dice_swapped)
+            else:
+                score0 = score0 + take_turn(roll, score1, select_dice(score0, score1, dice_swapped))
+            swine_swap(score0, score1)
+            player = other(player)
+        elif player == 1:
+            roll = strategy1(score1, score0)
+            if roll == -1:
+                score1 += 1
+                swap_dice(dice_swapped)
+            else:
+                score1 = score1 + take_turn(roll, score0, select_dice(score0, score1, dice_swapped))
+            swine_swap(score1, score0)
+            player = other(player)
     # END PROBLEM 5
     return score0, score1
-
 
 #######################
 # Phase 2: Strategies #
