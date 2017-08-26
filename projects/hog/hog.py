@@ -1,6 +1,7 @@
 """CS 61A Presents The Game of Hog."""
 
 # 题目地址 https://inst.eecs.berkeley.edu/~cs61a/fa16/proj/hog/
+# 遇到的问题在 line 172
 
 from dice import four_sided, six_sided, make_test_dice
 from ucb import main, trace, log_current_line, interact
@@ -168,6 +169,7 @@ def other(player):
     return 1 - player
 
 def play(strategy0, strategy1, score0=0, score1=0, goal=GOAL_SCORE):
+    #很奇怪之前可以运行，现在运行的话说这几个input都没有定义。。。
     """Simulate a game and return the final scores of both players, with
     Player 0's score first, and Player 1's score second.
 
