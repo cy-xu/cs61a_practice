@@ -283,6 +283,15 @@ def check_strategy(strategy, goal=GOAL_SCORE):
     """
     # BEGIN PROBLEM 6
     "*** REPLACE THIS LINE ***"
+    x = 0
+    y = 0
+    while x <= goal:
+        while y <= goal:
+            check_strategy_roll(x, y, strategy(x, y))
+            y += 1
+        y = 0
+        x += 1
+    return None
     # END PROBLEM 6
 
 
@@ -300,9 +309,19 @@ def make_averaged(fn, num_samples=1000):
     3.75
     """
     # BEGIN PROBLEM 7
-    "*** REPLACE THIS LINE ***"
+    "*** REPLACE THIS LINE *** 借鉴而来"
+    def average(*args):
+        result = 0
+        count = 0
+        while (count < num_samples):
+            result += fn(*args)
+            count += 1
+        return result / num_samples
+    return average
     # END PROBLEM 7
 
+test_fn = randint(0,11)
+print(test_fn)
 
 def max_scoring_num_rolls(dice=six_sided, num_samples=1000):
     """Return the number of dice (1 to 10) that gives the highest average turn
@@ -314,7 +333,16 @@ def max_scoring_num_rolls(dice=six_sided, num_samples=1000):
     10
     """
     # BEGIN PROBLEM 8
-    "*** REPLACE THIS LINE ***"
+    averaged_dice = make_averaged(roll_dice, num_samples)
+    num_rolls = 1
+    highest_average = 0
+    highest_num_rolls = 1
+    while num_rolls <= 10:
+        if highest_average < averaged_dice(num_rolls, dice):
+            highest_average = averaged_dice(num_rolls, dice)
+            highest_num_rolls = num_rolls
+        num_rolls += 1
+    return highest_num_rolls
     # END PROBLEM 8
 
 
@@ -365,7 +393,9 @@ def bacon_strategy(score, opponent_score, margin=8, num_rolls=4):
     """
     # BEGIN PROBLEM 9
     "*** REPLACE THIS LINE ***"
-    return 4  # Replace this statement
+    if hog_prime(free_bacon(opponent_score)) >= margin:
+        return 0
+    return num_rolls
     # END PROBLEM 9
 check_strategy(bacon_strategy)
 
@@ -377,7 +407,9 @@ def swap_strategy(score, opponent_score, margin=8, num_rolls=4):
     """
     # BEGIN PROBLEM 10
     "*** REPLACE THIS LINE ***"
-    return 4  # Replace this statement
+    if hog_prime(free_bacon(opponent_score)) >= margin or hog_prime(free_bacon(opponent_score)) + score == 2 * opponent_score:
+        return 0
+    return num_rolls
     # END PROBLEM 10
 check_strategy(swap_strategy)
 
@@ -388,10 +420,21 @@ def final_strategy(score, opponent_score):
     *** YOUR DESCRIPTION HERE ***
     """
     # BEGIN PROBLEM 11
-    "*** REPLACE THIS LINE ***"
-    return 4  # Replace this statement
+    if score == 0:
+        return -1
+    if (score >= 90 or score - 9 > opponent_score):
+        return 0
+    if (score + opponent_score) % 7 == 0:
+        return 6
+    if (hog_prime(score + free_bacon(opponent_score)) == opponent_score * 2):
+        return 0
+    #elif select_dice(score,opponent_score)
+    #if is_prime(score + 1):
+    #    return -1
+    return swap_strategy(score,opponent_score,5,3)
     # END PROBLEM 11
 check_strategy(final_strategy)
+
 
 
 ##########################
